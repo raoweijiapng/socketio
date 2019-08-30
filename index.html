@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Socketchat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        #chatroom{
+            display:  none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="userLogin" class="row">
+            <div class="col-md-8">
+                <p id="loginError"></p>
+                <form id="userForm">
+                        <div class="form-group">
+                            <input class="form-control" id="username" placeholder="enter  username" />
+                            <input type="submit" class="btn btn-primary" value="Login"/>
+                        </div>
+                </form>
+
+            </div>
+        </div>
+
+        <div id="chatroom" class="row">
+            <div class="col-md-8">
+                <div class="jumbotron">
+                        <h1>Users</h1>
+                        <ul class="list-group" id="users">
+
+                        </ul>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="chat" id="chat">
+
+                </div>
+                <form id="messageForm">
+                    <div class="form-group">
+                        <textarea class="form-control" id="message" placeholder="enter message"></textarea>
+                        <input type="submit" class="btn btn-primary" value="发送" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+   
+    <script>
+        $(function(){
+            const socket = io.connect();
+            const $userLogin = $('#userLogin');
+            const $loginError = $('#loginError')
+            const $userForm = $('#userForm');
+            const $username = $('#username');
+            const $chatroom = $('#chatroom');
+            const $users = $('#users');
+            const $messageForm = $('#messageForm');
+            const $message = $('#message');
+            const $chat = $('#chat');
+
+            $userForm.submit(function(e){
+                e.preventDefault();       
+                socket.emit('send user', $username.val(),function(data){
+                    if(data){
+                        $userLogin.hide();
+                        $chatroom.show();
+                    }else{
+                        $loginError.html('the  username is  already  taken...');
+                    }
+                });
+                $username.val('');
+             });
+
+            $messageForm.submit(function(e){
+                e.preventDefault();       //表单提交后刷新
+                socket.emit('send message', $message.val());
+                $message.val('');
+             });
+
+             socket.on('new message',function(data){
+                $chat.append('<div><strong>'+data.user+'</strong>:  '+data.msg+'</div>');
+             });
+
+             socket.on('get users',function(data){
+                 var html = '';
+                for(i=0; i< data.length; i++){
+                     html += '<li class="list-group-item">'+data[i]+'</li>';
+               }
+               $users.html(html);
+             });
+
+        });
+    </script>
+</body>
+</html>
