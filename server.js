@@ -5,6 +5,7 @@ const server = require('http').createServer(app);
 
 const io = require('socket.io').listen(server);
 
+var su={};
 users  = [ ];
 connections =[ ];
 
@@ -29,10 +30,21 @@ io.sockets.on('connection',function(socket){
     });
 
     socket.on('send message',function(data){
-        io.sockets.emit('new message',{msg:data,user:socket.username});
+        if(data.substring(0,1)=='@'){
+            socket.emit("new message",{msg:data,user:socket.username});
+            var i = data.indexOf(" ");
+            var u = data.substring(1,i);
+            var m = data.substring(i,data.length);
+            if(typeof su[u] != 'undefined'){
+                su[u].emit('new message',{msg:"[private]"+data.substring(i,data.length),user:socket.username});
+            }
+        }else{
+            io.sockets.emit('new message',{msg:data,user:socket.username});
+        }
     });
 
     socket.on('send user',function(data, callback){
+        su[data]=socket;
         if(users.indexOf(data) != -1){
             callback(false);
         }else{

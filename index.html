@@ -66,7 +66,15 @@
             const $message = $('#message');
             const $chat = $('#chat');
 
-            $userForm.submit(function(e){
+            $username.onkeyup = function (e){
+                if(e.keyCode !== 13){
+ 		            return;
+                }else{
+		            useradd;
+		        }  
+            }
+
+            var useradd = $userForm.submit(function(e){
                 e.preventDefault();       
                 socket.emit('send user', $username.val(),function(data){
                     if(data){
@@ -76,6 +84,7 @@
                         $loginError.html('the  username is  already  taken...');
                     }
                 });
+                neirong = $username.val();
                 $username.val('');
              });
 
@@ -86,7 +95,8 @@
              });
 
              socket.on('new message',function(data){
-                $chat.append('<div><strong>'+data.user+'</strong>:  '+data.msg+'</div>');
+                if (neirong==data.user){$chat.append('<div style="color:blue"><strong>'+data.user+'</strong>:  '+data.msg+'</div>');}else{
+                $chat.append('<div><strong>'+data.user+'</strong>:  '+data.msg+'</div>');}
              });
 
              socket.on('get users',function(data){
